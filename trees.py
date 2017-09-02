@@ -11,6 +11,8 @@
 
 """
 from math import log
+import operator
+
 
 def createDataSet():
     dataSet = [[1, 1, 'yes'],
@@ -18,8 +20,8 @@ def createDataSet():
                [1, 0, 'no'],
                [0, 1, 'no'],
                [0, 1, 'no']]
-    labels = ['no surfacing','flippers']
-    #change to discrete values
+    labels = ['no surfacing', 'flippers']
+    # change to discrete values
     return dataSet, labels
 
 
@@ -39,6 +41,7 @@ def splitDataSet(dataSet, axis, value):
             retDataSet.append(reducedFeatVec)
     return retDataSet
 
+
 def calcShannonEnt(dataSet):
     """
     计算给定数据集的香农熵
@@ -46,16 +49,16 @@ def calcShannonEnt(dataSet):
     :return:
     """
     num = len(dataSet)
-    labels = {}     #dict存储记录不同类别的个数
+    labels = {}  # dict存储记录不同类别的个数
     for entry in dataSet:
         label = entry[-1]
         if label not in labels:
             labels[label] = 0
         labels[label] += 1
     shannonEnt = 0.0
-    for key,value in labels.items():
-        prob = float(value)/num
-        shannonEnt += -prob* log(prob,2)
+    for key, value in labels.items():
+        prob = float(value) / num
+        shannonEnt += -prob * log(prob, 2)
     return shannonEnt
 
 
@@ -77,3 +80,43 @@ def chooseBestFeatureToSplit(dataSet):
             bestInfoGain = infoGain
             bestFeature = i
     return bestFeature
+
+
+def majorityCnt(classList):
+    """
+    多数表决法，返回一个list中出现最多次的元素名称
+    :param classList:
+    :return:
+    """
+    classCount = {}
+    for vote in classList:
+        if vote not in classCount.keys(): classCount[vote] = 0
+        classCount[vote] += 1
+    sortedClassCount = sorted(classCount.iteritems(), key=operator.itemgetter(1), reverse=True)
+    return sortedClassCount[0][0]
+
+
+def createTree(dataSet, labels):
+    """
+    递归创建决策树
+    :param dataSet:
+    :param labels:
+    :return:
+    """
+    classList = [x[-1] for x in dataSet]
+    if len(set(classList)) == 1:
+        return classList[0]  # 类别相同则停止继续划分
+    if len(dataSet[0]) == 1:
+        return majorityCnt(classList)  # 没特征了，但是类别不唯一，用多数表决法
+    bestFeat = chooseBestFeatureToSplit(dataSet)  # 最佳分类特征的序号数
+    bestLabel = labels[bestFeat]  # 分类特征的名字
+    myTree = {bestLabel: {}}
+
+    del (labels[bestFeat])
+    featValues = [x[bestFeat] for x in dataSet]
+    uniqueValues = set(featValues)  # 该特征的所有值，每个值都生成一个子树
+    for value in uniqueValues:
+        tempLabels = labels[:]
+        myTree[bestLabel][value] = createTree(splitDataSet \
+                                                  (dataSet, bestFeat, value), tempLabels)
+    return myTree

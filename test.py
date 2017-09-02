@@ -7,7 +7,7 @@ def run():
     print dataSet
     print trees.calcShannonEnt(dataSet)
     print trees.chooseBestFeatureToSplit(dataSet)
-
+    print trees.createTree(dataSet, labels)
 
 if __name__ == '__main__':
     run()
