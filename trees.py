@@ -120,3 +120,23 @@ def createTree(dataSet, labels):
         myTree[bestLabel][value] = createTree(splitDataSet \
                                                   (dataSet, bestFeat, value), tempLabels)
     return myTree
+
+
+def classify(inputTree, featLabels, testVec):
+    """
+    使用决策树的分类函数
+    :param inputTree:
+    :param featLabels:
+    :param testVec:
+    :return:
+    """
+    firstStr = inputTree.keys()[0]
+    secondDict = inputTree[firstStr]
+    featIndex = featLabels.index(firstStr)  # 将第一个节点名称转换成了对应的index值
+    for key in secondDict.keys():
+        if testVec[featIndex] == key:
+            if type(secondDict[key]).__name__ == 'dict':
+                classLabel = classify(secondDict[key], featLabels, testVec)
+            else:
+                classLabel = secondDict[key]
+    return classLabel
